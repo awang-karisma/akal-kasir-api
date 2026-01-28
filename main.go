@@ -78,6 +78,10 @@ func main() {
 	productService := services.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
+	categoryRepo := repositories.NewCategoryRepository(db)
+	categoryService := services.NewCategoryService(categoryRepo)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
 	healthHandler := handlers.NewHealthHandler(db)
 
 	r := mux.NewRouter()
@@ -87,6 +91,9 @@ func main() {
 
 	r.HandleFunc("/api/products", productHandler.HandleProduct).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/products/{id}", productHandler.HandleProductByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+
+	r.HandleFunc("/api/categories", categoryHandler.HandleCategory).Methods(http.MethodGet, http.MethodPost)
+	r.HandleFunc("/api/categories/{id}", categoryHandler.HandleCategoryByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
 
 	r.HandleFunc("/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
 		internal.HandleError(w, http.StatusNotFound, "Not found")
