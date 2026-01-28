@@ -8,10 +8,11 @@ import (
 	"kasir-api/services"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -52,16 +53,13 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 
 func main() {
 	log.Println("Starting server...")
-	viper.AutomaticEnv()
-	viper.SetConfigFile(".env")
-	err := viper.ReadInConfig()
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error reading config file: ", err)
+		log.Printf("Error loading .env file: %s. Using environment variables.", err)
 	}
-	var config Config
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		log.Fatal("Error unmarshalling config: ", err)
+	var config = Config{
+		Port:   os.Getenv("PORT"),
+		DBConn: os.Getenv("DB_CONN"),
 	}
 
 	db, err := database.InitDB(config.DBConn)
