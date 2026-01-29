@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"kasir-api/internal"
 	"kasir-api/models"
@@ -145,6 +147,125 @@ func (h *ProductHandler) HandleProductByID(w http.ResponseWriter, r *http.Reques
 		h.UpdateProductByID(w, r)
 	case http.MethodDelete:
 		h.DeleteProductByID(w, r)
+	default:
+		internal.HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
+	}
+}
+
+func (h *ProductHandler) AddCategoryToProduct(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid product uuid")
+		return
+	}
+
+	var req struct {
+		CategoryID string `json:"category_id"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	_, err = uuid.Parse(req.CategoryID)
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid category uuid")
+		return
+	}
+
+	err = h.service.AddCategoryToProduct(id.String(), req.CategoryID)
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			internal.HandleError(w, http.StatusNotFound, "Product or category not found")
+			return
+		}
+		internal.HandleError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	internal.HandleResponse(w, http.StatusCreated, map[string]string{"message": "Category added to product successfully"})
+}
+
+func (h *ProductHandler) RemoveCategoryFromProduct(w http.ResponseWriter, r *http.Request) {
+	log.Print(mux.Vars(r))
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid product uuid")
+		return
+	}
+
+	var req struct {
+		CategoryID string `json:"category_id"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	_, err = uuid.Parse(req.CategoryID)
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid category uuid")
+		return
+	}
+
+	err = h.service.RemoveCategoryFromProduct(id.String(), req.CategoryID)
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	internal.HandleResponse(w, http.StatusOK, map[string]string{"message": "Category removed from product successfully"})
+}
+
+func (h *ProductHandler) GetProductCategories(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid product uuid")
+		return
+	}
+
+	// Check if product exists
+	product, err := h.service.GetProductByID(id.String())
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	if product.ID == "" {
+		internal.HandleError(w, http.StatusNotFound, "Product not found")
+		return
+	}
+
+	categories, err := h.service.GetCategoriesByProductID(id.String())
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	internal.HandleResponse(w, http.StatusOK, categories)
+}
+
+func (h *ProductHandler) HandleProductCategories(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetProductCategories(w, r)
+	case http.MethodPost:
+		h.AddCategoryToProduct(w, r)
+	case http.MethodDelete:
+		h.RemoveCategoryFromProduct(w, r)
 	default:
 		internal.HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}

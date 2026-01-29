@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"kasir-api/models"
+	"strings"
 )
 
 type CategoryRepository struct {
@@ -88,4 +90,49 @@ func (r *CategoryRepository) DeleteCategoryByID(id string) (models.Category, err
 	}
 
 	return deletedCategory, nil
+}
+
+func (r *CategoryRepository) GetProductsByCategoryID(categoryID string) ([]models.CategoryWithProducts, error) {
+	query := `
+		SELECT
+			c.id,
+			c.name,
+			c.description,
+			c.created_at,
+			COALESCE(
+				json_agg(json_build_object(
+					'id', p.id,
+					'name', p.name,
+					'price', p.price,
+					'stock', p.stock,
+					'created_at', p.created_at
+				)) FILTER (WHERE p.id IS NOT NULL),
+				'[]'::json
+			) AS products
+		FROM categories c
+		INNER JOIN product_categories pc ON c.id = pc.category_id
+		INNER JOIN products p ON pc.product_id = p.id
+		WHERE c.id = $1
+		GROUP BY c.id
+		ORDER BY c.name
+	`
+	rows, err := r.db.Query(query, categoryID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get products by category id %s : %w", categoryID, err)
+	}
+	defer rows.Close()
+
+	categories := make([]models.CategoryWithProducts, 0)
+	for rows.Next() {
+		var category models.CategoryWithProducts
+		var product string
+		err := rows.Scan(&category.ID, &category.Name, &category.Description, &category.CreatedAt, &product)
+		if err != nil {
+			return nil, err
+		}
+
+		json.NewDecoder(strings.NewReader(product)).Decode(&category.Products)
+		categories = append(categories, category)
+	}
+	return categories, nil
 }

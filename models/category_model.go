@@ -6,3 +6,8 @@ type Category struct {
 	Description string `json:"description"`
 	CreatedAt   string `json:"created_at"`
 }
+
+type CategoryWithProducts struct {
+	Category
+	Products []ProductWithoutCategories `json:"products"`
+}

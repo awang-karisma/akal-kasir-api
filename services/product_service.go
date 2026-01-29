@@ -32,3 +32,15 @@ func (s *ProductService) UpdateProductByID(id string, product models.Product) (m
 func (s *ProductService) DeleteProductByID(id string) (models.Product, error) {
 	return s.repo.DeleteProductByID(id)
 }
+
+func (s *ProductService) AddCategoryToProduct(productID, categoryID string) error {
+	return s.repo.AddCategoryToProduct(productID, categoryID)
+}
+
+func (s *ProductService) RemoveCategoryFromProduct(productID, categoryID string) error {
+	return s.repo.RemoveCategoryFromProduct(productID, categoryID)
+}
+
+func (s *ProductService) GetCategoriesByProductID(productID string) ([]models.Category, error) {
+	return s.repo.GetCategoriesByProductID(productID)
+}

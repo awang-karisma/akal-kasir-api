@@ -149,3 +149,21 @@ func (h *CategoryHandler) HandleCategoryByID(w http.ResponseWriter, r *http.Requ
 		internal.HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
+
+func (h *CategoryHandler) GetProductsByCategory(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusBadRequest, "Invalid uuid")
+		return
+	}
+
+	products, err := h.service.GetProductsByCategoryID(id.String())
+	if err != nil {
+		log.Println(err)
+		internal.HandleError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	internal.HandleResponse(w, http.StatusOK, products)
+}

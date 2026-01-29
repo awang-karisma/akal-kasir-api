@@ -91,9 +91,11 @@ func main() {
 
 	r.HandleFunc("/api/products", productHandler.HandleProduct).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/products/{id}", productHandler.HandleProductByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+	r.HandleFunc("/api/products/{id}/categories", productHandler.HandleProductCategories).Methods(http.MethodGet, http.MethodPost, http.MethodDelete)
 
 	r.HandleFunc("/api/categories", categoryHandler.HandleCategory).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/categories/{id}", categoryHandler.HandleCategoryByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+	r.HandleFunc("/api/categories/{id}/products", categoryHandler.GetProductsByCategory).Methods(http.MethodGet)
 
 	r.HandleFunc("/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
 		internal.HandleError(w, http.StatusNotFound, "Not found")
