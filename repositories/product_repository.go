@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"kasir-api/models"
+	"log"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (r *ProductRepository) GetProducts() ([]models.Product, error) {
+func (r *ProductRepository) GetProducts(name string) ([]models.Product, error) {
 	query := `
 		SELECT
 			p.id,
@@ -36,9 +37,17 @@ func (r *ProductRepository) GetProducts() ([]models.Product, error) {
 		FROM products p
 		LEFT JOIN product_categories pc ON p.id = pc.product_id
 		LEFT JOIN categories c ON pc.category_id = c.id
-		GROUP BY p.id, p.name;
 	`
-	rows, err := r.db.Query(query)
+	var args []any
+	if name != "" {
+		query += " WHERE p.name ILIKE $1 "
+		args = []any{"%" + name + "%"}
+	}
+	query += `
+		GROUP BY p.id, p.name
+	`
+	log.Println(query)
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

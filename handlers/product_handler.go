@@ -24,7 +24,8 @@ func NewProductHandler(service *services.ProductService) ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.service.GetProducts()
+	name := r.URL.Query().Get("name")
+	products, err := h.service.GetProducts(name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
