@@ -29,6 +29,11 @@ func (r *TransactionRepository) CreateTransaction(items []models.CheckoutItem) (
 		if err != nil {
 			return nil, err
 		}
+
+		if productDetail.Stock == 0 {
+			return nil, fmt.Errorf("Insufficient stock for item %s, stock is %d", item.ProductID, productDetail.Stock)
+		}
+
 		if productDetail.Stock < item.Quantity {
 			return nil, fmt.Errorf("Insufficient stock for item %s, stock is %d but requested %d", item.ProductID, productDetail.Stock, item.Quantity)
 		}
@@ -51,14 +56,14 @@ func (r *TransactionRepository) CreateTransaction(items []models.CheckoutItem) (
 
 	}
 
-	var transactionId string
-	err = tx.QueryRow("INSERT INTO transactions (total_amount) VALUES ($1) RETURNING id", totalAmount).Scan(&transactionId)
+	var transaction models.Transaction
+	err = tx.QueryRow("INSERT INTO transactions (total_amount) VALUES ($1) RETURNING id, created_at", totalAmount).Scan(&transaction.ID, &transaction.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, detail := range details {
-		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)", transactionId, detail.ProductID, detail.Quantity, detail.Subtotal)
+		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)", transaction.ID, detail.ProductID, detail.Quantity, detail.Subtotal)
 		if err != nil {
 			return nil, err
 		}
@@ -68,11 +73,9 @@ func (r *TransactionRepository) CreateTransaction(items []models.CheckoutItem) (
 	if err != nil {
 		return nil, err
 	}
+	transaction.TotalAmount = totalAmount
 
-	return &models.Transaction{
-		ID:          transactionId,
-		TotalAmount: totalAmount,
-	}, nil
+	return &transaction, nil
 }
 
 func (r *TransactionRepository) GetTransactions() ([]models.Transaction, error) {
