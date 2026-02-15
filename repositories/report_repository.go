@@ -65,7 +65,7 @@ func (r *ReportRepository) GetReports(from string, to string) (models.Report, er
 		if transactionCount > int64(report.BestSeller.Quantity) {
 			report.BestSeller.ProductID = transactionDetail.ProductID
 			report.BestSeller.ProductName = transactionDetail.ProductName
-			report.BestSeller.Quantity = transactionCount
+			report.BestSeller.Quantity = int64(transactionDetail.Quantity)
 			report.BestSeller.TotalAmount = transactionDetail.Subtotal
 		}
 	}

@@ -62,8 +62,14 @@ func (r *TransactionRepository) CreateTransaction(items []models.CheckoutItem) (
 		return nil, err
 	}
 
+	bulkInsert, err := tx.Prepare("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)")
+	if err != nil {
+		return nil, err
+	}
+	defer bulkInsert.Close()
+
 	for _, detail := range details {
-		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)", transaction.ID, detail.ProductID, detail.Quantity, detail.Subtotal)
+		_, err = bulkInsert.Exec(transaction.ID, detail.ProductID, detail.Quantity, detail.Subtotal)
 		if err != nil {
 			return nil, err
 		}
