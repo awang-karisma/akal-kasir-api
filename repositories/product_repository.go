@@ -7,6 +7,7 @@ import (
 	"kasir-api/models"
 	"log"
 	"strings"
+	"time"
 )
 
 type ProductRepository struct {
@@ -99,7 +100,8 @@ func (r *ProductRepository) GetProductByID(id string) (models.Product, error) {
 	product.Categories = []models.Category{}
 	for rows.Next() {
 		var category models.Category
-		var categoryID, categoryName, categoryDescription, categoryCreatedAt *string
+		var categoryID, categoryName, categoryDescription *string
+		var categoryCreatedAt *time.Time
 
 		err := rows.Scan(&product.ID, &product.Name, &product.Price, &product.Stock, &product.CreatedAt,
 			&categoryID, &categoryName, &categoryDescription, &categoryCreatedAt)

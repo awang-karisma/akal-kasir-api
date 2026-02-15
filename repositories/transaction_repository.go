@@ -72,6 +72,52 @@ func (r *TransactionRepository) CreateTransaction(items []models.CheckoutItem) (
 	return &models.Transaction{
 		ID:          transactionId,
 		TotalAmount: totalAmount,
-		Details:     details,
 	}, nil
+}
+
+func (r *TransactionRepository) GetTransactions() ([]models.Transaction, error) {
+	query := `
+		select id, total_amount, created_at
+		from transactions
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []models.Transaction
+	for rows.Next() {
+		var transaction models.Transaction
+		err := rows.Scan(&transaction.ID, &transaction.TotalAmount, &transaction.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
+}
+
+func (r *TransactionRepository) GetTransactionsRange(from string, to string) ([]models.Transaction, error) {
+	query := `
+		select id, total_amount, created_at
+		from transactions
+		where created_at BETWEEN $1 AND $2
+	`
+	rows, err := r.db.Query(query, from, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []models.Transaction
+	for rows.Next() {
+		var transaction models.Transaction
+		err := rows.Scan(&transaction.ID, &transaction.TotalAmount, &transaction.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
 }

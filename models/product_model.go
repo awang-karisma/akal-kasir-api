@@ -1,11 +1,13 @@
 package models
 
+import "time"
+
 type Product struct {
 	ID         string     `json:"id"`
 	Name       string     `json:"name"`
-	Price      int        `json:"price"`
+	Price      int64      `json:"price"`
 	Stock      int        `json:"stock"`
-	CreatedAt  string     `json:"created_at"`
+	CreatedAt  time.Time  `json:"created_at"`
 	Categories []Category `json:"categories"`
 }
 

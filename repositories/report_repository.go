@@ -27,11 +27,11 @@ func (r *ReportRepository) GetReports(from string, to string) (models.Report, er
 	`
 	if len(from) != 0 {
 		params = append(params, from)
-		query += "AND td.created_at >= $" + strconv.Itoa(len(params))
+		query += " AND td.created_at >= $" + strconv.Itoa(len(params))
 	}
 	if len(to) != 0 {
 		params = append(params, to)
-		query += "AND td.created_at <= $" + strconv.Itoa(len(params))
+		query += " AND td.created_at <= $" + strconv.Itoa(len(params))
 	}
 	query += `)
 		select product_id, product_name, sum(quantity) as quantity, sum(subtotal) as subtotal, COUNT(*) OVER() as transaction_count

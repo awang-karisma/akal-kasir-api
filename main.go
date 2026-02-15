@@ -94,20 +94,21 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(loggingMiddleware)
 
-	r.HandleFunc("/healthz", healthHandler.HandleHealth).Methods(http.MethodGet)
+	r.HandleFunc("/healthz", healthHandler.HandleHealth)
 
-	r.HandleFunc("/api/products", productHandler.HandleProduct).Methods(http.MethodGet, http.MethodPost)
-	r.HandleFunc("/api/products/{id}", productHandler.HandleProductByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
-	r.HandleFunc("/api/products/{id}/categories", productHandler.HandleProductCategories).Methods(http.MethodGet, http.MethodPost, http.MethodDelete)
+	r.HandleFunc("/api/products", productHandler.HandleProduct)
+	r.HandleFunc("/api/products/{id}", productHandler.HandleProductByID)
+	r.HandleFunc("/api/products/{id}/categories", productHandler.HandleProductCategories)
 
-	r.HandleFunc("/api/categories", categoryHandler.HandleCategory).Methods(http.MethodGet, http.MethodPost)
-	r.HandleFunc("/api/categories/{id}", categoryHandler.HandleCategoryByID).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
-	r.HandleFunc("/api/categories/{id}/products", categoryHandler.GetProductsByCategory).Methods(http.MethodGet)
+	r.HandleFunc("/api/categories", categoryHandler.HandleCategory)
+	r.HandleFunc("/api/categories/{id}", categoryHandler.HandleCategoryByID)
+	r.HandleFunc("/api/categories/{id}/products", categoryHandler.GetProductsByCategory)
 
-	r.HandleFunc("/api/checkout", transactionHandler.HandleCheckout).Methods(http.MethodPost)
+	r.HandleFunc("/api/checkout", transactionHandler.HandleCheckout)
+	r.HandleFunc("/api/transactions", transactionHandler.GetTransactions)
 
-	r.HandleFunc("/api/reports", reportHandler.HandleReport).Methods(http.MethodGet)
-	r.HandleFunc("/api/reports/today", reportHandler.GetReportToday).Methods(http.MethodGet)
+	r.HandleFunc("/api/reports", reportHandler.HandleReport)
+	r.HandleFunc("/api/reports/today", reportHandler.GetReportToday)
 
 	r.HandleFunc("/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
 		internal.HandleError(w, http.StatusNotFound, "Not found")
