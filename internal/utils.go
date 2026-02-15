@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func HandleResponse(w http.ResponseWriter, statusCode int, data interface{}) {
@@ -19,4 +20,9 @@ func HandleError(w http.ResponseWriter, statusCode int, message string) {
 		"code":    strconv.Itoa(statusCode),
 		"message": message,
 	})
+}
+
+func IsDateValid(date string) bool {
+	_, err := time.Parse("2006-01-02", date)
+	return err == nil
 }

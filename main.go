@@ -86,6 +86,9 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
+	reportRepo := repositories.NewReportRepository(db)
+	reportService := services.NewReportService(reportRepo)
+	reportHandler := handlers.NewReportHandler(reportService)
 	healthHandler := handlers.NewHealthHandler(db)
 
 	r := mux.NewRouter()
@@ -102,6 +105,9 @@ func main() {
 	r.HandleFunc("/api/categories/{id}/products", categoryHandler.GetProductsByCategory).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/checkout", transactionHandler.HandleCheckout).Methods(http.MethodPost)
+
+	r.HandleFunc("/api/reports", reportHandler.HandleReport).Methods(http.MethodGet)
+	r.HandleFunc("/api/reports/today", reportHandler.GetReportToday).Methods(http.MethodGet)
 
 	r.HandleFunc("/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
 		internal.HandleError(w, http.StatusNotFound, "Not found")
